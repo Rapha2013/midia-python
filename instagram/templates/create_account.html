@@ -1,0 +1,50 @@
+{% extends "template.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Criar Conta</h4>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+
+                        <div class="form-group">
+                            {{ form.username.label(class="form-control-label") }}
+                            {{ form.username(class="form-control") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.email.label(class="form-control-label") }}
+                            {{ form.email(class="form-control") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.password.label(class="form-control-label") }}
+                            {{ form.password(class="form-control") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.checkPassword.label(class="form-control-label") }}
+                            {{ form.checkPassword(class="form-control") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.profile_img.label(class="form-control-label") }}
+                            {{ form.profile_img(class="form-control") }}
+                        </div>
+
+                        {{ form.btn(class="btn btn-primary btn-block") }}
+                    </form>
+
+                    <hr>
+
+                    <p class="text-center">Já tem uma conta? <a href="{{ url_for('login') }}">Faça login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

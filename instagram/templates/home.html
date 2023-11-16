@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div id="flash-message" class="alert alert-{{ category }}">
+    {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+    Open Modal
+</button>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-4 with-vertical-line">
+            <h6>Lista de Usuários</h6>
+            <ul class="list-group">
+                {% for user_info in users %}
+                <li class="list-group-item">
+                    <div class="row p-1">
+                        <div class="col-2">
+                            <img src="data:image/png;base64,{{ user_info.user.profile_img }}" alt="Usuário 1"
+                                class="rounded-circle" width="50">
+                        </div>
+                        <div class="col-5">
+                            <span> {{ user_info.user.username }}</span>
+                        </div>
+
+                        <div class="col-5">
+                            <form method="POST" action="{{ url_for('follow') }}">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="user_id" value="{{ current_user.id }}">
+                                <input type="hidden" name="user_follow_id" value="{{ user_info.user.id }}">
+                                <button type="submit"
+                                    class="btn btn-primary {% if user_info.following %}btn-secondary{% endif %}"
+                                    id="follow-btn" data-toggle="tooltip" data-placement="top">
+                                    {% if user_info.following %}
+                                    <span name="seguindo"> Seguindo </span>
+                                    {% else %}
+                                    <span name="seguir"> Seguir </span>
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-8 with-vertical-line">
+            <div class="container">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.csrf_token }}
+                    <h6>Criar Postagem</h6>
+                    <div class="form-group">
+                        {{ form.text.label(class="form-control-label") }}
+                        {{ form.text(class="form-control") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                {{ form.photo(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            {{ form.btn(class="btn btn-primary btn-block") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="container">
+                {% for post_info in posts %}
+                <div class="card mb-3">
+                    <img class="mx-auto d-flex align-items-center" src="data:image/png;base64,{{ post_info.post_img }}"
+                        alt="Card image cap" style="width: 150px;">
+                    <div class="card-body">
+                        <p class="card-text">{{ post_info.post_text }}</p>
+                        <p class="card-text"><small class="text-muted">{{ post_info.creation_date }}</small></p>
+                        <div class="row">
+                            <div class="col-2">
+                                <form method="POST" action="{{ url_for('like') }}">
+                                    {{ form.hidden_tag() }}
+                                    <input type="hidden" name="user_id" value="{{ current_user.id }}">
+                                    <input type="hidden" name="post_id" value="{{ post_info.id }}">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i id="like-icon" class="bi bi-hand-thumbs-up"></i>
+                                        <span class="ml-2">{{ post_info.likes|length }}</span>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="comment-count">{{ post_info.comments|length }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="myModalLabel">Modal Title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Modal content goes here -->
+                This is the modal content.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var followForm = document.getElementById('followForm');
+        var followBtn = document.getElementById('follow-btn');
+
+        followBtn.addEventListener('click', function () {
+
+
+            console.log(followForm)
+
+            // Prevent the default form submission
+            // event.preventDefault();
+
+            // var formData = new FormData(followForm);
+
+            // // Use fetch to send a request to your Flask route to save the changes
+            // fetch('/follow', {
+            //     method: 'POST',
+            //     body: {
+            //         'user_id': formData.get('user_id'),
+            //         'following': formData.get('following'),
+            //     },
+            // })
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         // Update the button text based on the response
+            //         if (data.following) {
+            //             followBtn.textContent = 'Seguindo';
+            //         } else {
+            //             followBtn.textContent = 'Seguir';
+            //         }
+            //     })
+            //     .catch(error => console.error('Error:', error));
+        });
+    });
+
+    setTimeout(function () {
+        var flashMessage = document.getElementById('flash-message');
+        if (flashMessage) {
+            flashMessage.remove();
+        }
+    }, 2000);
+</script>
+
+<style>
+    .with-vertical-line {
+        border-right: 1px solid #ccc;
+        height: 100vh;
+        padding-right: 15px;
+        /* Adicione um espaçamento à direita para evitar sobreposição com a borda */
+    }
+</style>
+
+{% endblock %}
