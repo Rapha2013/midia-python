@@ -3,13 +3,13 @@ import os
 import base64
 from datetime import datetime
 
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.utils import secure_filename
 
-from instagram.models import load_user, User, Posts, Follows, LikesPost
+from instagram.models import load_user, User, Posts, Follows, LikesPost, CommetsPost
 from instagram import app, database
-from instagram.forms import FormLogin, FormCreateNewAccount, FormCreateNewPost, FollowForm, LikeForm
+from instagram.forms import FormLogin, FormCreateNewAccount, FormCreateNewPost, FollowForm, LikeForm, FormUpdateUser
 from instagram import bcrypt
 from instagram import login_manager
 
@@ -23,6 +23,9 @@ def login():
         if userToLogin and bcrypt.check_password_hash(userToLogin.password, formLogin.password.data):
             login_user(userToLogin)
             return redirect(url_for('homepage'))
+        else:
+            formLogin.email.errors.append('Email ou senha incorretos')
+            return render_template("login.html", teto='LOGIN', form=formLogin)
 
 
     return render_template("login.html", teto='LOGIN', form=formLogin)
@@ -44,6 +47,13 @@ def create():
         else:
             img_data = None
 
+        # verificar se já existe o email cadastrado e retornar um erro
+        user = User.query.filter_by(email=formCreateAccount.email.data).first()
+        if user:
+            formCreateAccount.email.errors.append('Email já cadastrado')
+            return render_template("create_account.html", form=formCreateAccount)
+
+
         newUser = User(
             username=formCreateAccount.username.data,
             email=formCreateAccount.email.data,
@@ -63,6 +73,14 @@ def create():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/comments/<int:post_id>', methods=['GET'])
+@login_required
+def getcomments(post_id):
+    comments = CommetsPost.query.filter_by(post_id=post_id).all()
+
+    return jsonify({'comments': [comment.serialize() for comment in comments]})
+
 
     # Função para verificar se um usuário está sendo seguido pelo usuário logado
 def is_following(user):
@@ -118,6 +136,15 @@ def follow():
     form = FollowForm(request.form)
 
     if form.validate_on_submit():
+
+        is_following = Follows.query.filter_by(user_id=form.user_id.data, user_follow_id=form.user_follow_id.data).first()
+
+        if is_following:
+            database.session.delete(is_following)
+            database.session.commit()
+            return redirect(url_for('homepage'))
+
+
         newfollow = Follows(user_id=form.user_id.data,
                        user_follow_id=form.user_follow_id.data,)
         
@@ -132,7 +159,12 @@ def follow():
 def like():
     form = LikeForm(request.form)
 
-    print(form.post_id.data)
+    is_liked = LikesPost.query.filter_by(user_id=form.user_id.data, post_id=form.post_id.data).first()
+
+    if is_liked:
+        database.session.delete(is_liked)
+        database.session.commit()
+        return redirect(url_for('homepage'))
 
     if form.validate_on_submit():
         newfollow = LikesPost(user_id=form.user_id.data,
@@ -144,41 +176,37 @@ def like():
       
     return redirect(url_for('homepage'))
 
-# @app.route('/profile/<user_id>', methods=['POST', 'GET'])
-# @login_required
-# def profile(user_id):
-#     if int(user_id) == int(current_user.id):
-#         # estou vendo meu perfil
-#         _formNewPost = FormCreateNewPost()
+@app.route('/profile/<user_id>', methods=['POST', 'GET'])
+@login_required
+def profile(user_id):
+    _updateUser = FormUpdateUser()
 
-#         if _formNewPost.validate_on_submit():
-#             # pegar o texto
-#             _post_text = _formNewPost.text.data
+    if request.method == 'POST' and _updateUser.validate():
+        # Obtenha o objeto do banco de dados que você deseja atualizar
+        user_to_update = User.query.get(int(user_id))
 
-#             # pegar a img
-#             _post_img = _formNewPost.photo.data
-#             _img_name = secure_filename(_post_img.filename)
-#             path = os.path.abspath(os.path.dirname(__file__))
-#             path2 = app.config['UPLOAD_FOLDER']
-#             _final_path = f'{path}/{path2}/{_img_name}'
+         # pegar a img
+        _user_img = _updateUser.profile_img.data
 
-#             _post_img.save(_final_path)
+        if _user_img:
+            # Leia a imagem como bytes e converta para base64
+            img_data = base64.b64encode(_user_img.read()).decode('utf-8')
+        else:
+            img_data = None
 
-#             # criar um obj Post
-#             newPost = Posts(post_text=_post_text,
-#                            post_img=_img_name,
-#                            user_id=int(current_user.id)
-#                            )
+        # Atualize os atributos do objeto com os novos valores
+        user_to_update.username = _updateUser.username.data
+        user_to_update.profile_img = img_data
 
-#             # salvar no banco
-#             database.session.add(newPost)
-#             database.session.commit()
+        # Faça o commit para persistir as mudanças no banco de dados
+        database.session.commit()
 
-#         return render_template("profile.html", user=current_user, form=_formNewPost)
-#     else:
-#         # outro perfil"""
-#         _user = User.query.get(int(user_id))
-#         return render_template("profile.html", user=_user, form=False)
+        return redirect(url_for('homepage'))
+    
+    _user = User.query.get(int(user_id))
+    _updateUser.username.data = _user.username
+
+    return render_template("profile.html", user=_user, form=_updateUser)
 
 
 

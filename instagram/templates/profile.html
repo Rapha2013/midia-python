@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center">Atualizar Perfil</h4>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+
+                        <div class="form-group">
+                            {{ form.username.label(class="form-control-label") }}
+                            {{ form.username(class="form-control") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.profile_img.label(class="form-control-label") }}
+                            {{ form.profile_img(class="form-control") }}
+                        </div>
+
+                        {{ form.btn(class="btn btn-primary btn-block") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+</script>
+
+<style>
+
+</style>
+
+{% endblock %}

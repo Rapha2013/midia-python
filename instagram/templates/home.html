@@ -12,9 +12,12 @@
 {% endif %}
 {% endwith %}
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
     Open Modal
-</button>
+</button> -->
+
+
+{{ comments }}
 
 <div class="container mt-4">
     <div class="row">
@@ -77,31 +80,64 @@
             <div class="container">
                 {% for post_info in posts %}
                 <div class="card mb-3">
+                    {% if post_info.post_img %}
                     <img class="mx-auto d-flex align-items-center" src="data:image/png;base64,{{ post_info.post_img }}"
                         alt="Card image cap" style="width: 150px;">
+                    {% endif %}
+
                     <div class="card-body">
                         <p class="card-text">{{ post_info.post_text }}</p>
                         <p class="card-text"><small class="text-muted">{{ post_info.creation_date }}</small></p>
+
+
+
                         <div class="row">
-                            <div class="col-2">
+                            <div class="col-auto d-flex justify-content-between">
+                                <!-- Botão de Like -->
                                 <form method="POST" action="{{ url_for('like') }}">
                                     {{ form.hidden_tag() }}
                                     <input type="hidden" name="user_id" value="{{ current_user.id }}">
                                     <input type="hidden" name="post_id" value="{{ post_info.id }}">
                                     <button type="submit" class="btn btn-primary">
-                                        <i id="like-icon" class="bi bi-hand-thumbs-up"></i>
+                                        <i type="submit" id="like-icon" class="bi bi-hand-thumbs-up"></i>
                                         <span class="ml-2">{{ post_info.likes|length }}</span>
                                     </button>
                                 </form>
-                            </div>
-                            <div class="col-2">
-                                <button type="submit" class="btn btn-primary">
+
+                                <!-- Botão de Comentário -->
+                                <button class="btn btn-primary ml-2 btn-comment" data-post-id="{{ post_info.id }}">
                                     <i class="bi bi-chat"></i>
-                                    <span class="comment-count">{{ post_info.comments|length }}</span>
+                                    <span class="comment-count ml-2">{{ post_info.comments|length }}</span>
                                 </button>
                             </div>
                         </div>
                     </div>
+                    {% if post_info.comments|length > 0 %}
+                    <div class="card">
+                        <h6 class="text-center mt-2">Comentários</h6>
+                        {% for comment in post_info.comments %}
+                        <div class="card-body">
+                            <div class="comment">
+                                <div class="user-info d-flex align-items-center">
+                                    {% if comment.user.profile_img %}
+                                    <img class="user-profile-img mr-2"
+                                        src="data:image/png;base64,{{ comment.user.profile_img }}" width="30"
+                                        height="30" alt="User Profile">
+                                    {% endif %}
+                                    <div>
+                                        <span class="user-name">{{ comment.user.username }}</span>
+                                        <span class="comment-date ml-2">{{ comment.creation_date }}</span>
+                                    </div>
+                                </div>
+                                <div class="comment-text mt-2">
+                                    {{ comment.comment_text }}
+                                </div>
+                            </div>
+                            <hr>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -109,64 +145,9 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="myModalLabel">Modal Title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Modal content goes here -->
-                This is the modal content.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
-        </div>
-    </div>
-</div>
 
+<!-- Inclua a biblioteca Axios para fazer solicitações AJAX -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var followForm = document.getElementById('followForm');
-        var followBtn = document.getElementById('follow-btn');
-
-        followBtn.addEventListener('click', function () {
-
-
-            console.log(followForm)
-
-            // Prevent the default form submission
-            // event.preventDefault();
-
-            // var formData = new FormData(followForm);
-
-            // // Use fetch to send a request to your Flask route to save the changes
-            // fetch('/follow', {
-            //     method: 'POST',
-            //     body: {
-            //         'user_id': formData.get('user_id'),
-            //         'following': formData.get('following'),
-            //     },
-            // })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         // Update the button text based on the response
-            //         if (data.following) {
-            //             followBtn.textContent = 'Seguindo';
-            //         } else {
-            //             followBtn.textContent = 'Seguir';
-            //         }
-            //     })
-            //     .catch(error => console.error('Error:', error));
-        });
-    });
-
     setTimeout(function () {
         var flashMessage = document.getElementById('flash-message');
         if (flashMessage) {

@@ -38,10 +38,13 @@ class FollowForm(FlaskForm):
     user_follow_id = HiddenField('user_follow_id')
     submit = SubmitField('Seguir')
 
-
-
 class LikeForm(FlaskForm):
     post_id = HiddenField('post_id')
     user_id = HiddenField('user_id')
     submit = SubmitField('Seguir')
+
+class FormUpdateUser(FlaskForm):
+    username = StringField('Nome Completo', validators=[DataRequired()])
+    profile_img = FileField('Imagem de Perfil')
+    btn = SubmitField('Atualizar')
 

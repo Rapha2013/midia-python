@@ -1,24 +1,30 @@
 from instagram import app, database
 from instagram.models import User, Posts
 from werkzeug.security import generate_password_hash
+import random
 
-# Ative o contexto do aplicativo
+
 app.app_context().push()
 
-# Crie instâncias de usuários e posts
-user1 = User(username='user1', email='user1@example.com', password=generate_password_hash('password1'))
-user2 = User(username='user2', email='user2@example.com', password=generate_password_hash('password2'))
+nomes = ["Alice", "Bob", "Charlie", "David", "Emma", "Frank", "Grace", "Henry", "Isabel", "Jack"]
+sobrenomes = ["Adams", "Brown", "Clark", "Davis", "Evans", "Fisher", "Garcia", "Hill", "Irwin", "Johnson"]
 
-post1 = Posts(post_text='This is post 1', user=user1)
-post2 = Posts(post_text='This is post 2', user=user2)
+# Criando 10 usuários de exemplo com uma postagem cada
+for i in range(1, 11):
+    nome = random.choice(nomes)
+    sobrenome = random.choice(sobrenomes)
+    username = f'{nome.lower()}.{sobrenome.lower()}'
+    email = f'{nome.lower()}.{sobrenome.lower()}@example.com'
+    password = generate_password_hash('123456')
+    
+    user = User(username=username, email=email, password=password)
+    database.session.add(user)
+    database.session.commit()
+    
+    post_text = f"Olá, eu sou o usuário {username} e esta é a minha primeira postagem!"
+    post = Posts(post_text=post_text, user_id=user.id)
+    database.session.add(post)
+    database.session.commit()
 
-# Adicione usuários e posts ao banco de dados
-database.session.add(user1)
-database.session.add(user2)
-database.session.add(post1)
-database.session.add(post2)
 
-# Commit para salvar as alterações
-database.session.commit()
-
-print("Dados adicionados ao banco de dados.")
+print("Registros de exemplo criados com sucesso!")

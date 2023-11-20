@@ -6,6 +6,7 @@ flask_wtf
 email_validator
 flask_bcrypt
 flask_sqlalchemy
+Flask-Bootstrap4
 
 """
 from instagram import app, database

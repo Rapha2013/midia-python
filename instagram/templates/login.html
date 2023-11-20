@@ -20,6 +20,8 @@
                             {{ form.password.label(class="form-control-label") }}
                             {{ form.password(class="form-control") }}
                         </div>
+                        <span class="text-danger">{{ form.errors.email|join(', ') }}</span>
+
 
                         {{ form.btn(class="btn btn-primary btn-block") }}
                     </form>
