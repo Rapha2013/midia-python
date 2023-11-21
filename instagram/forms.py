@@ -1,7 +1,7 @@
 # Aqui vai ficar os formularios de login e de posts
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, HiddenField
+from wtforms import StringField, PasswordField, SubmitField, FileField, HiddenField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from wtforms.widgets import TextArea
 
@@ -48,3 +48,6 @@ class FormUpdateUser(FlaskForm):
     profile_img = FileField('Imagem de Perfil')
     btn = SubmitField('Atualizar')
 
+class CommentForm(FlaskForm):
+    comment = TextAreaField('Comentário')
+    submit = SubmitField('Enviar')

@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 from instagram.models import load_user, User, Posts, Follows, LikesPost, CommetsPost
 from instagram import app, database
-from instagram.forms import FormLogin, FormCreateNewAccount, FormCreateNewPost, FollowForm, LikeForm, FormUpdateUser
+from instagram.forms import FormLogin, FormCreateNewAccount, FormCreateNewPost, FollowForm, LikeForm, FormUpdateUser, CommentForm
 from instagram import bcrypt
 from instagram import login_manager
 
@@ -74,6 +74,28 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/comment', methods=['POST'])
+def comment():
+    form = CommentForm()
+
+    if form.validate_on_submit():
+        # Handle form submission here, for example, save the comment to the database
+        post_id = request.form.get('post_id')
+        comment_text = form.comment.data
+        # Save the comment to the database or perform other necessary actions
+
+        newComment = CommetsPost(
+            comment_text=comment_text,
+            user_id=current_user.id,
+            post_id=post_id,
+        )
+
+        database.session.add(newComment)
+        database.session.commit()
+
+        # Redirect to the post details page or any other page you want
+        return redirect(url_for('homepage'))
+
 @app.route('/comments/<int:post_id>', methods=['GET'])
 @login_required
 def getcomments(post_id):
@@ -126,7 +148,7 @@ def homepage():
     users_with_follow_status = [{'user': user, 'following': is_following(user)} for user in users]
 
     # users = User.query.all()
-    return render_template("home.html", users=users_with_follow_status, posts=posts, form=formCreateNewPost)
+    return render_template("home.html", users=users_with_follow_status, posts=posts, form=formCreateNewPost, formComment=CommentForm())
 
 
 
